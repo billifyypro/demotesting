@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billify - Professional Invoice Generator</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --bg-color: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title h2 {
+            margin: 0;
+            font-size: 2rem;
+            color: #ccc;
+        }
+
+        /* Input Groups */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        input, textarea {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        /* Items Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: left;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .amount-col {
+            text-align: right;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .add-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        /* Totals */
+        .totals {
+            float: right;
+            width: 300px;
+            text-align: right;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-weight: bold;
+        }
+
+        .grand-total {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            border-top: 2px solid var(--border-color);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* Footer & Controls */
+        .footer-watermark {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #9ca3af;
+            clear: both;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Print Styling */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+            .controls, .add-btn, .remove-btn, input::placeholder, textarea::placeholder {
+                display: none !important;
+            }
+            input, textarea {
+                border: none;
+                padding: 0;
+                resize: none;
+            }
+            /* Hide empty rows if needed logic here, but keeping simple */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="brand">
+                <h1>BILLIFY</h1>
+                <p style="margin: 0; color: gray;">Professional Invoice Solution</p>
+            </div>
+            <div class="invoice-title">
+                <h2>INVOICE</h2>
+                <div class="input-group" style="text-align: right;">
+                    <input type="text" value="#INV-001" style="text-align: right; font-weight: bold;">
+                    <input type="date" id="dateInput" style="text-align: right;">
+                </div>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div class="from-section">
+                <label>Bill From:</label>
+                <input type="text" placeholder="Your Business Name" style="width: 100%; font-weight: bold; margin-bottom: 5px;">
+                <textarea rows="3" placeholder="Your Address & Contact Info" style="width: 100%;"></textarea>
+            </div>
+            <div class="to-section">
+                <label>Bill To:</label>
+                <input type="text" placeholder="Client Name" style="width: 100%; font-weight: bold; margin-bottom: 5px;">
+                <textarea rows="3" placeholder="Client Address" style="width: 100%;"></textarea>
+            </div>
+        </div>
+
+        <table id="itemsTable">
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Item Description</th>
+                    <th style="width: 15%;">Qty</th>
+                    <th style="width: 15%;">Price</th>
+                    <th style="width: 15%;" class="amount-col">Total</th>
+                    <th style="width: 5%;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+
+        <button class="add-btn" onclick="addItem()">+ Add Item</button>
+
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span id="subTotal">₹0.00</span>
+            </div>
+            <div class="total-row">
+                <span>Tax (%): <input type="number" id="taxRate" value="0" style="width: 40px; text-align: right;" onchange="calculateTotal()"></span>
+                <span id="taxAmount">₹0.00</span>
+            </div>
+            <div class="total-row grand-total">
+                <span>Total Due:</span>
+                <span id="grandTotal">₹0.00</span>
+            </div>
+        </div>
+
+        <div class="footer-watermark">
+            <p>Powered by Netlify • Created via Billify</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="action-btn" onclick="handlePrint()">Download / Print Bill</button>
+    </div>
+
+    <script>
+        // Set today's date
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        // 1. Initial Setup - Add one empty row
+        addItem();
+
+        // 2. Add Item Function
+        function addItem() {
+            const tbody = document.querySelector('#itemsTable tbody');
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td><input type="text" placeholder="Description" style="width: 95%;"></td>
+                <td><input type="number" value="1" min="1" onchange="calculateTotal()" class="qty-input" style="width: 100%;"></td>
+                <td><input type="number" value="0" min="0" onchange="calculateTotal()" class="price-input" style="width: 100%;"></td>
+                <td class="amount-col">₹0.00</td>
+                <td><button class="remove-btn" onclick="removeRow(this)">×</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // 3. Remove Row Function
+        function removeRow(btn) {
+            const row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            calculateTotal();
+        }
+
+        // 4. Calculation Logic
+        function calculateTotal() {
+            const rows = document.querySelectorAll('#itemsTable tbody tr');
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                const qty = row.querySelector('.qty-input').value;
+                const price = row.querySelector('.price-input').value;
+                const total = qty * price;
+                
+                row.querySelector('.amount-col').innerText = '₹' + total.toFixed(2);
+                subtotal += total;
+            });
+
+            const taxRate = document.getElementById('taxRate').value;
+            const taxAmount = subtotal * (taxRate / 100);
+            const grandTotal = subtotal + taxAmount;
+
+            document.getElementById('subTotal').innerText = '₹' + subtotal.toFixed(2);
+            document.getElementById('taxAmount').innerText = '₹' + taxAmount.toFixed(2);
+            document.getElementById('grandTotal').innerText = '₹' + grandTotal.toFixed(2);
+        }
+
+        // 5. MASTER LOGIC: Limit & Paywall System
+        function handlePrint() {
+            const LIMIT = 4;
+            const REDIRECT_URL = "https://billifyypro.github.io/billifypro/";
+            
+            // LocalStorage se check karega ki user ne kitni baar use kiya hai
+            let usageCount = localStorage.getItem('billify_usage_count');
+
+            if (!usageCount) {
+                usageCount = 0;
+            } else {
+                usageCount = parseInt(usageCount);
+            }
+
+            // Agar usage limit se kam hai
+            if (usageCount < LIMIT) {
+                usageCount++;
+                localStorage.setItem('billify_usage_count', usageCount);
+                
+                // Print Dialog open karega
+                window.print();
+                
+                // Optional: Console log for testing
+                console.log(`Used ${usageCount} of ${LIMIT} times.`);
+            } 
+            // Agar limit cross ho gayi
+            else {
+                alert("You have reached your free limit (4 Bills). Subscribe at Billify to use unlimited features.");
+                window.location.href = REDIRECT_URL;
+            }
+        }
+    </script>
+</body>
+</html>
