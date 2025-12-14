@@ -3,367 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billify - Professional Invoice Generator</title>
+    <title>Billify - Instant Invoice Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --text-color: #1f2937;
-            --border-color: #e5e7eb;
-            --bg-color: #f3f4f6;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Header Section */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 20px;
-        }
-
-        .brand h1 {
-            margin: 0;
-            color: var(--primary-color);
-            font-size: 2.5rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .invoice-title {
-            text-align: right;
-        }
-
-        .invoice-title h2 {
-            margin: 0;
-            font-size: 2rem;
-            color: #ccc;
-        }
-
-        /* Input Groups */
-        .details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 30px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
-
-        label {
-            font-size: 0.85rem;
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Watermark Styles */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 4rem;
+            color: rgba(0, 0, 0, 0.05);
             font-weight: bold;
-            color: #6b7280;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
         }
 
-        input, textarea {
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-family: inherit;
-        }
-
-        textarea {
-            resize: vertical;
-        }
-
-        /* Items Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: white;
-            text-align: left;
-            padding: 10px;
-        }
-
-        td {
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .amount-col {
-            text-align: right;
-        }
-
-        .remove-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .add-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-
-        /* Totals */
-        .totals {
-            float: right;
-            width: 300px;
-            text-align: right;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            font-weight: bold;
-        }
-
-        .grand-total {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            border-top: 2px solid var(--border-color);
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-
-        /* Footer & Controls */
-        .footer-watermark {
-            margin-top: 50px;
+        .billify-footer {
             text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
             font-size: 0.8rem;
-            color: #9ca3af;
-            clear: both;
         }
 
-        .controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            padding: 12px 24px;
-            background-color: #10b981;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Print Styling */
+        /* Print Styles */
         @media print {
-            body {
-                background: white;
+            body * { visibility: hidden; }
+            #invoice-preview-modal, #invoice-preview-modal * { visibility: visible; }
+            #invoice-preview-modal { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                margin: 0; 
                 padding: 0;
-            }
-            .container {
+                background: white; 
                 box-shadow: none;
-                padding: 0;
-                width: 100%;
-                max-width: 100%;
             }
-            .controls, .add-btn, .remove-btn, input::placeholder, textarea::placeholder {
-                display: none !important;
-            }
-            input, textarea {
-                border: none;
-                padding: 0;
-                resize: none;
-            }
-            /* Hide empty rows if needed logic here, but keeping simple */
+            .no-print { display: none !important; }
         }
+
+        .hidden { display: none !important; }
     </style>
 </head>
-<body>
+<body class="text-gray-800">
 
-    <div class="container">
-        <div class="header">
-            <div class="brand">
-                <h1>BILLIFY</h1>
-                <p style="margin: 0; color: gray;">Professional Invoice Solution</p>
+    <div id="app" class="min-h-screen flex flex-col">
+
+        <nav class="bg-white shadow-sm border-b border-gray-200 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center cursor-pointer" onclick="app.router('dashboard')">
+                        <i class="fas fa-file-invoice text-indigo-600 text-2xl mr-2"></i>
+                        <span class="font-bold text-xl tracking-tight">Billify</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="app.openInvoiceBuilder()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition">
+                            <i class="fas fa-plus mr-2"></i> Create Bill
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="invoice-title">
-                <h2>INVOICE</h2>
-                <div class="input-group" style="text-align: right;">
-                    <input type="text" value="#INV-001" style="text-align: right; font-weight: bold;">
-                    <input type="date" id="dateInput" style="text-align: right;">
+        </nav>
+
+        <main class="flex-grow p-6 relative">
+            
+            <section id="view-dashboard" class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+                        <p class="text-gray-500">Overview of your billing</p>
+                    </div>
+                    <div class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-bold border border-indigo-100">
+                        Free Plan: <span id="usage-count">0</span>/3 Used
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500">
+                        <div class="text-gray-500 text-sm font-medium">Total Revenue</div>
+                        <div class="text-2xl font-bold mt-1">₹<span id="stat-revenue">0</span></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                        <div class="text-gray-500 text-sm font-medium">Paid Invoices</div>
+                        <div class="text-2xl font-bold mt-1" id="stat-paid">0</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                        <div class="text-gray-500 text-sm font-medium">Pending Amount</div>
+                        <div class="text-2xl font-bold mt-1">₹<span id="stat-pending">0</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">All Invoices</h3>
+                        <input type="text" id="search-input" onkeyup="app.renderDashboard()" placeholder="Search client name..." class="border rounded px-3 py-1 text-sm">
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoice-list-body" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                        </table>
+                    </div>
+                    <div id="empty-state" class="text-center py-10 text-gray-500 hidden">
+                        <i class="far fa-folder-open text-4xl mb-2 text-gray-300"></i>
+                        <p>No invoices created yet.</p>
+                        <button onclick="app.openInvoiceBuilder()" class="mt-4 text-indigo-600 font-medium hover:underline">Create your first bill</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-invoice-builder" class="hidden max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Create New Bill</h2>
+                    <button onclick="app.router('dashboard')" class="text-gray-500 hover:text-red-500"><i class="fas fa-times fa-lg"></i></button>
+                </div>
+
+                <div class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Bill From (Your Details)</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Business Name</label>
+                            <input type="text" id="biz-name" class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white" placeholder="Your Company Name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Phone / GST / Address</label>
+                            <input type="text" id="biz-details" class="mt-1 block w-full border border-gray-300 rounded-md p-2 bg-white" placeholder="GSTIN: XXXXX | Lucknow, UP">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Bill To (Client)</h3>
+                        <label class="block text-sm font-medium text-gray-700">Client Name</label>
+                        <input type="text" id="inv-client" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Client Name">
+                        
+                        <label class="block text-sm font-medium text-gray-700 mt-2">Client Contact</label>
+                        <input type="text" id="inv-contact" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Phone or Email">
+                    </div>
+                    <div class="text-right">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Invoice Details</h3>
+                        <div class="flex justify-end items-center mb-2">
+                            <label class="mr-2 text-sm text-gray-600">Invoice #</label>
+                            <input type="text" id="inv-number" class="w-32 border border-gray-300 rounded-md p-2 text-right bg-gray-100" readonly>
+                        </div>
+                        <div class="flex justify-end items-center">
+                            <label class="mr-2 text-sm text-gray-600">Date</label>
+                            <input type="date" id="inv-date" class="w-40 border border-gray-300 rounded-md p-2 text-right">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="font-bold text-gray-700 mb-2">Item List</h3>
+                    <table class="w-full mb-4">
+                        <thead>
+                            <tr class="text-left text-sm text-gray-500 border-b bg-gray-50">
+                                <th class="p-2 w-1/2">Item Description</th>
+                                <th class="p-2 w-20 text-center">Qty</th>
+                                <th class="p-2 w-32 text-right">Price (₹)</th>
+                                <th class="p-2 text-right">Total</th>
+                                <th class="p-2 w-10"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="inv-items-body">
+                            </tbody>
+                    </table>
+                    <button onclick="app.addInvoiceItem()" class="text-sm text-indigo-600 font-medium hover:text-indigo-800 border border-indigo-200 px-3 py-1 rounded bg-indigo-50">+ Add Item</button>
+                </div>
+
+                <div class="flex justify-end border-t pt-4">
+                    <div class="w-64 space-y-2">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Subtotal:</span>
+                            <span>₹<span id="inv-subtotal">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between text-gray-600 items-center">
+                            <span>Tax / GST (%):</span>
+                            <input type="number" id="inv-tax-rate" value="0" onchange="app.calculateTotals()" class="w-16 border rounded p-1 text-right text-sm">
+                        </div>
+                        <div class="flex justify-between text-xl font-bold text-gray-900 border-t pt-2">
+                            <span>Grand Total:</span>
+                            <span>₹<span id="inv-total">0.00</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button onclick="app.router('dashboard')" class="text-gray-500 hover:text-gray-700">Cancel</button>
+                    <div class="space-x-3">
+                        <button onclick="app.previewInvoice()" class="bg-gray-800 text-white px-5 py-2 rounded-lg hover:bg-gray-900 shadow">
+                            <i class="fas fa-eye mr-2"></i> Preview & Print
+                        </button>
+                        <button onclick="app.saveInvoice()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow hover:bg-indigo-700 font-bold">
+                            Save Bill
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="invoice-preview-modal" class="hidden fixed inset-0 z-50 bg-gray-900 bg-opacity-75 overflow-y-auto flex items-start justify-center p-4 sm:p-10">
+        <div class="bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative min-h-[800px] flex flex-col">
+            
+            <div class="bg-gray-800 text-white p-4 flex justify-between items-center no-print">
+                <h3 class="font-bold">Bill Preview</h3>
+                <div class="space-x-2">
+                    <button onclick="window.print()" class="bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded text-sm font-bold"><i class="fas fa-print mr-2"></i> Print / PDF</button>
+                    <button onclick="document.getElementById('invoice-preview-modal').classList.add('hidden')" class="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-sm"><i class="fas fa-times"></i> Close</button>
+                </div>
+            </div>
+
+            <div class="p-10 flex-grow relative" id="print-area">
+                <div class="watermark">Billify</div>
+                
+                <div class="flex justify-between items-start mb-10 border-b pb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2" id="prev-biz-name">Your Company</h1>
+                        <p class="text-gray-500 max-w-xs" id="prev-biz-details">Address Details</p>
+                    </div>
+                    <div class="text-right">
+                        <h2 class="text-4xl font-light text-gray-300 uppercase tracking-widest">INVOICE</h2>
+                        <p class="text-gray-600 mt-2 font-bold"># <span id="prev-inv-num">INV-001</span></p>
+                        <p class="text-gray-600">Date: <span id="prev-inv-date">2023-10-10</span></p>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <p class="text-gray-500 text-xs uppercase tracking-wide mb-2">Bill To:</p>
+                    <h3 class="font-bold text-xl text-gray-800" id="prev-client-name">Client Name</h3>
+                    <p class="text-gray-600" id="prev-client-contact">Contact Info</p>
+                </div>
+
+                <table class="w-full mb-8">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-gray-600 text-sm uppercase font-bold">
+                            <th class="py-3 px-4">Description</th>
+                            <th class="py-3 px-4 text-center">Qty</th>
+                            <th class="py-3 px-4 text-right">Price</th>
+                            <th class="py-3 px-4 text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prev-items-body" class="text-gray-700">
+                        </tbody>
+                </table>
+
+                <div class="flex justify-end">
+                    <div class="w-1/2 border-t pt-4">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Subtotal</span>
+                            <span class="font-medium">₹<span id="prev-subtotal">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Tax</span>
+                            <span class="font-medium">₹<span id="prev-tax">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between text-2xl font-bold text-indigo-900 mt-4 border-t border-gray-200 pt-4">
+                            <span>Total Due</span>
+                            <span>₹<span id="prev-total">0.00</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="billify-footer">
+                    <p>Thank you for your business!</p>
+                    <p class="font-bold mt-2 text-indigo-900">Generated by Billify</p>
                 </div>
             </div>
         </div>
-
-        <div class="details-grid">
-            <div class="from-section">
-                <label>Bill From:</label>
-                <input type="text" placeholder="Your Business Name" style="width: 100%; font-weight: bold; margin-bottom: 5px;">
-                <textarea rows="3" placeholder="Your Address & Contact Info" style="width: 100%;"></textarea>
-            </div>
-            <div class="to-section">
-                <label>Bill To:</label>
-                <input type="text" placeholder="Client Name" style="width: 100%; font-weight: bold; margin-bottom: 5px;">
-                <textarea rows="3" placeholder="Client Address" style="width: 100%;"></textarea>
-            </div>
-        </div>
-
-        <table id="itemsTable">
-            <thead>
-                <tr>
-                    <th style="width: 50%;">Item Description</th>
-                    <th style="width: 15%;">Qty</th>
-                    <th style="width: 15%;">Price</th>
-                    <th style="width: 15%;" class="amount-col">Total</th>
-                    <th style="width: 5%;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
-        </table>
-
-        <button class="add-btn" onclick="addItem()">+ Add Item</button>
-
-        <div class="totals">
-            <div class="total-row">
-                <span>Subtotal:</span>
-                <span id="subTotal">₹0.00</span>
-            </div>
-            <div class="total-row">
-                <span>Tax (%): <input type="number" id="taxRate" value="0" style="width: 40px; text-align: right;" onchange="calculateTotal()"></span>
-                <span id="taxAmount">₹0.00</span>
-            </div>
-            <div class="total-row grand-total">
-                <span>Total Due:</span>
-                <span id="grandTotal">₹0.00</span>
-            </div>
-        </div>
-
-        <div class="footer-watermark">
-            <p>Powered by Netlify • Created via Billify</p>
-        </div>
     </div>
 
-    <div class="controls">
-        <button class="action-btn" onclick="handlePrint()">Download / Print Bill</button>
+    <div id="premium-limit-modal" class="hidden fixed inset-0 z-[60] bg-gray-900 bg-opacity-90 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+            
+            <div class="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-crown text-indigo-600 text-3xl"></i>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Free Limit Reached</h2>
+            <p class="text-gray-600 mb-8">
+                You have reached the limit of <span class="font-bold text-gray-800">3 free invoices</span> on this device. Subscribe to Billify Pro to create unlimited bills.
+            </p>
+            
+            <button onclick="window.location.href='https://billifyypro.github.io/billifypro/'" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition transform duration-200 flex items-center justify-center">
+                <span>Subscribe to Use More</span>
+                <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+            
+            <p class="mt-4 text-xs text-gray-400">Secure Payment • Cancel Anytime</p>
+        </div>
     </div>
 
     <script>
-        // Set today's date
-        document.getElementById('dateInput').valueAsDate = new Date();
+        const app = {
+            state: {
+                invoices: [],
+                tempInvoiceItems: []
+            },
 
-        // 1. Initial Setup - Add one empty row
-        addItem();
+            init: function() {
+                // Load from local storage
+                const storedInvoices = localStorage.getItem('billify_simple_invoices');
+                if (storedInvoices) this.state.invoices = JSON.parse(storedInvoices);
 
-        // 2. Add Item Function
-        function addItem() {
-            const tbody = document.querySelector('#itemsTable tbody');
-            const tr = document.createElement('tr');
-            
-            tr.innerHTML = `
-                <td><input type="text" placeholder="Description" style="width: 95%;"></td>
-                <td><input type="number" value="1" min="1" onchange="calculateTotal()" class="qty-input" style="width: 100%;"></td>
-                <td><input type="number" value="0" min="0" onchange="calculateTotal()" class="price-input" style="width: 100%;"></td>
-                <td class="amount-col">₹0.00</td>
-                <td><button class="remove-btn" onclick="removeRow(this)">×</button></td>
-            `;
-            tbody.appendChild(tr);
-        }
-
-        // 3. Remove Row Function
-        function removeRow(btn) {
-            const row = btn.parentNode.parentNode;
-            row.parentNode.removeChild(row);
-            calculateTotal();
-        }
-
-        // 4. Calculation Logic
-        function calculateTotal() {
-            const rows = document.querySelectorAll('#itemsTable tbody tr');
-            let subtotal = 0;
-
-            rows.forEach(row => {
-                const qty = row.querySelector('.qty-input').value;
-                const price = row.querySelector('.price-input').value;
-                const total = qty * price;
+                // Load saved Business Details
+                const bizName = localStorage.getItem('billify_biz_name');
+                const bizDetails = localStorage.getItem('billify_biz_details');
                 
-                row.querySelector('.amount-col').innerText = '₹' + total.toFixed(2);
-                subtotal += total;
-            });
+                if(bizName) document.getElementById('biz-name').value = bizName;
+                if(bizDetails) document.getElementById('biz-details').value = bizDetails;
 
-            const taxRate = document.getElementById('taxRate').value;
-            const taxAmount = subtotal * (taxRate / 100);
-            const grandTotal = subtotal + taxAmount;
+                this.router('dashboard');
+            },
 
-            document.getElementById('subTotal').innerText = '₹' + subtotal.toFixed(2);
-            document.getElementById('taxAmount').innerText = '₹' + taxAmount.toFixed(2);
-            document.getElementById('grandTotal').innerText = '₹' + grandTotal.toFixed(2);
-        }
+            // --- ROUTING ---
+            router: function(viewName) {
+                // Hide all sections
+                ['view-dashboard', 'view-invoice-builder'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
 
-        // 5. MASTER LOGIC: Limit & Paywall System
-        function handlePrint() {
-            const LIMIT = 4;
-            const REDIRECT_URL = "https://billifyypro.github.io/billifypro/";
-            
-            // LocalStorage se check karega ki user ne kitni baar use kiya hai
-            let usageCount = localStorage.getItem('billify_usage_count');
+                // Show target
+                document.getElementById(`view-${viewName}`).classList.remove('hidden');
 
-            if (!usageCount) {
-                usageCount = 0;
-            } else {
-                usageCount = parseInt(usageCount);
+                if (viewName === 'dashboard') {
+                    this.renderDashboard();
+                }
+            },
+
+            // --- DASHBOARD ---
+            renderDashboard: function() {
+                const query = document.getElementById('search-input').value.toLowerCase();
+                const tbody = document.getElementById('invoice-list-body');
+                tbody.innerHTML = '';
+
+                let totalRev = 0;
+                let pendingAmt = 0;
+                let paidCount = 0;
+
+                // Update Usage Count
+                const currentCount = this.state.invoices.length;
+                document.getElementById('usage-count').innerText = currentCount;
+                if(currentCount >= 3) {
+                    document.getElementById('usage-count').classList.add('text-red-600');
+                } else {
+                    document.getElementById('usage-count').classList.remove('text-red-600');
+                }
+
+                const filtered = this.state.invoices.filter(inv => inv.client.toLowerCase().includes(query));
+
+                if (filtered.length === 0) {
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    document.querySelector('table').classList.add('hidden');
+                } else {
+                    document.getElementById('empty-state').classList.add('hidden');
+                    document.querySelector('table').classList.remove('hidden');
+
+                    filtered.forEach(inv => {
+                        // Calc stats
+                        if(inv.status === 'Paid') {
+                            totalRev += parseFloat(inv.total);
+                            paidCount++;
+                        } else {
+                            pendingAmt += parseFloat(inv.total);
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-gray-50 transition";
+                        tr.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${inv.number}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">${inv.client}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${inv.date}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">₹${inv.total}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-bold rounded-full ${inv.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                    ${inv.status}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button onclick="app.viewInvoice('${inv.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-eye"></i></button>
+                                ${inv.status !== 'Paid' ? `<button onclick="app.markPaid('${inv.id}')" class="text-green-600 hover:text-green-900" title="Mark Paid"><i class="fas fa-check-circle"></i></button>` : ''}
+                                <button onclick="app.deleteInvoice('${inv.id}')" class="text-red-400 hover:text-red-600 ml-3"><i class="fas fa-trash"></i></button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                // Update Stats
+                document.getElementById('stat-revenue').innerText = totalRev.toLocaleString('en-IN');
+                document.getElementById('stat-paid').innerText = paidCount;
+                document.getElementById('stat-pending').innerText = pendingAmt.toLocaleString('en-IN');
+            },
+
+            // --- INVOICE GENERATOR ---
+            openInvoiceBuilder: function() {
+                // LIMIT CHECK BEFORE OPENING
+                if(this.state.invoices.length >= 3) {
+                    document.getElementById('premium-limit-modal').classList.remove('hidden');
+                    return;
+                }
+
+                // Clear form for new invoice
+                document.getElementById('inv-client').value = '';
+                document.getElementById('inv-contact').value = '';
+                document.getElementById('inv-number').value = 'INV-' + Math.floor(1000 + Math.random() * 9000);
+                document.getElementById('inv-date').valueAsDate = new Date();
+                
+                // Keep business details if they exist in localStorage
+                const savedBiz = localStorage.getItem('billify_biz_name');
+                if(savedBiz) document.getElementById('biz-name').value = savedBiz;
+
+                this.state.tempInvoiceItems = [{ desc: 'Service Charge', qty: 1, price: 500 }];
+                this.renderInvoiceItems();
+                this.router('invoice-builder');
+            },
+
+            renderInvoiceItems: function() {
+                const tbody = document.getElementById('inv-items-body');
+                tbody.innerHTML = '';
+                
+                this.state.tempInvoiceItems.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-gray-100";
+                    tr.innerHTML = `
+                        <td class="py-2 pr-2">
+                            <input type="text" value="${item.desc}" onchange="app.updateItem(${index}, 'desc', this.value)" class="w-full border border-gray-300 rounded p-2 text-sm" placeholder="Description">
+                        </td>
+                        <td class="py-2 pr-2">
+                            <input type="number" value="${item.qty}" onchange="app.updateItem(${index}, 'qty', this.value)" class="w-full border border-gray-300 rounded p-2 text-sm text-center">
+                        </td>
+                        <td class="py-2 pr-2">
+                            <input type="number" value="${item.price}" onchange="app.updateItem(${index}, 'price', this.value)" class="w-full border border-gray-300 rounded p-2 text-sm text-right">
+                        </td>
+                        <td class="py-2 text-right text-sm font-medium">
+                            ₹${(item.qty * item.price).toFixed(2)}
+                        </td>
+                        <td class="py-2 text-right">
+                            <button onclick="app.removeItem(${index})" class="text-red-400 hover:text-red-600 p-2"><i class="fas fa-times"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                this.calculateTotals();
+            },
+
+            addInvoiceItem: function() {
+                this.state.tempInvoiceItems.push({ desc: '', qty: 1, price: 0 });
+                this.renderInvoiceItems();
+            },
+
+            updateItem: function(index, field, value) {
+                this.state.tempInvoiceItems[index][field] = field === 'desc' ? value : parseFloat(value) || 0;
+                this.renderInvoiceItems();
+            },
+
+            removeItem: function(index) {
+                if(this.state.tempInvoiceItems.length > 1) {
+                    this.state.tempInvoiceItems.splice(index, 1);
+                    this.renderInvoiceItems();
+                }
+            },
+
+            calculateTotals: function() {
+                let subtotal = this.state.tempInvoiceItems.reduce((acc, item) => acc + (item.qty * item.price), 0);
+                let taxRate = parseFloat(document.getElementById('inv-tax-rate').value) || 0;
+                let tax = subtotal * (taxRate / 100);
+                let total = subtotal + tax;
+
+                document.getElementById('inv-subtotal').innerText = subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('inv-total').innerText = total.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                return { subtotal, tax, total };
+            },
+
+            // --- PREVIEW & SAVE ---
+            fillPreviewData: function() {
+                // Get Biz Details
+                const bizName = document.getElementById('biz-name').value || "Your Business";
+                const bizDetail = document.getElementById('biz-details').value || "";
+                
+                // Save Biz details for future
+                localStorage.setItem('billify_biz_name', bizName);
+                localStorage.setItem('billify_biz_details', bizDetail);
+
+                document.getElementById('prev-biz-name').innerText = bizName;
+                document.getElementById('prev-biz-details').innerText = bizDetail;
+
+                document.getElementById('prev-inv-num').innerText = document.getElementById('inv-number').value;
+                document.getElementById('prev-inv-date').innerText = document.getElementById('inv-date').value;
+                document.getElementById('prev-client-name').innerText = document.getElementById('inv-client').value || 'Client Name';
+                document.getElementById('prev-client-contact').innerText = document.getElementById('inv-contact').value;
+
+                // Items
+                const tbody = document.getElementById('prev-items-body');
+                tbody.innerHTML = '';
+                this.state.tempInvoiceItems.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-gray-100";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4">${item.desc}</td>
+                        <td class="py-3 px-4 text-center">${item.qty}</td>
+                        <td class="py-3 px-4 text-right">₹${item.price.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td class="py-3 px-4 text-right font-medium">₹${(item.qty * item.price).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Totals
+                const totals = this.calculateTotals();
+                document.getElementById('prev-subtotal').innerText = totals.subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('prev-tax').innerText = totals.tax.toLocaleString('en-IN', {minimumFractionDigits: 2});
+                document.getElementById('prev-total').innerText = totals.total.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            },
+
+            previewInvoice: function() {
+                this.fillPreviewData();
+                document.getElementById('invoice-preview-modal').classList.remove('hidden');
+            },
+
+            saveInvoice: function() {
+                // FINAL LIMIT CHECK
+                if(this.state.invoices.length >= 3) {
+                    document.getElementById('premium-limit-modal').classList.remove('hidden');
+                    return;
+                }
+
+                const totals = this.calculateTotals();
+                const bizName = document.getElementById('biz-name').value;
+                
+                // Save Biz details
+                localStorage.setItem('billify_biz_name', bizName);
+                localStorage.setItem('billify_biz_details', document.getElementById('biz-details').value);
+
+                const newInvoice = {
+                    id: Date.now().toString(),
+                    number: document.getElementById('inv-number').value,
+                    client: document.getElementById('inv-client').value || 'Unknown Client',
+                    contact: document.getElementById('inv-contact').value,
+                    date: document.getElementById('inv-date').value,
+                    items: [...this.state.tempInvoiceItems],
+                    subtotal: totals.subtotal.toFixed(2),
+                    total: totals.total.toFixed(2),
+                    status: 'Unpaid'
+                };
+
+                // Add to start of array
+                this.state.invoices.unshift(newInvoice);
+                this.saveData();
+                
+                // Return to dashboard
+                this.router('dashboard');
+            },
+
+            markPaid: function(invId) {
+                const inv = this.state.invoices.find(i => i.id === invId);
+                if(inv) {
+                    inv.status = 'Paid';
+                    this.saveData();
+                    this.renderDashboard();
+                }
+            },
+
+            deleteInvoice: function(invId) {
+                if(confirm('Delete this invoice permanently?')) {
+                    this.state.invoices = this.state.invoices.filter(i => i.id !== invId);
+                    this.saveData();
+                    this.renderDashboard();
+                }
+            },
+
+            viewInvoice: function(invId) {
+                const inv = this.state.invoices.find(i => i.id === invId);
+                if(!inv) return;
+                
+                // Populate temp state
+                this.state.tempInvoiceItems = inv.items;
+                document.getElementById('inv-number').value = inv.number;
+                document.getElementById('inv-client').value = inv.client;
+                document.getElementById('inv-contact').value = inv.contact || '';
+                document.getElementById('inv-date').value = inv.date;
+                
+                this.previewInvoice();
+            },
+
+            saveData: function() {
+                localStorage.setItem('billify_simple_invoices', JSON.stringify(this.state.invoices));
             }
+        };
 
-            // Agar usage limit se kam hai
-            if (usageCount < LIMIT) {
-                usageCount++;
-                localStorage.setItem('billify_usage_count', usageCount);
-                
-                // Print Dialog open karega
-                window.print();
-                
-                // Optional: Console log for testing
-                console.log(`Used ${usageCount} of ${LIMIT} times.`);
-            } 
-            // Agar limit cross ho gayi
-            else {
-                alert("You have reached your free limit (4 Bills). Subscribe at Billify to use unlimited features.");
-                window.location.href = REDIRECT_URL;
-            }
-        }
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
     </script>
 </body>
 </html>
